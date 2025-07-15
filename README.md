@@ -22,7 +22,7 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 4. Dùng **VietOCR** để **recognize** nội dung text của từng vùng.
 5. Tạo file PDF mới:
    - Lớp dưới cùng: hình ảnh gốc.
-   - Lớp trên: text nhận dạng được, đặt đúng vị trí, cho phép copy/search.
+   - Lớp trên: text nhận dạng được, đặt đúng vị trí, cho phép select/copy/search.
 
 ## Kết quả
 

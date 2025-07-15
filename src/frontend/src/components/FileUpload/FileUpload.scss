@@ -1,0 +1,140 @@
+// FileUpload.scss
+.file-upload {
+  width: 100%;
+
+  .upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    background: #fafbfc;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+
+    &:hover {
+      border-color: #ff1744;
+      background: #fff5f5;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 23, 68, 0.1);
+    }
+
+    .upload-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .upload-text {
+        font-size: 18px;
+        color: #374151;
+        margin-bottom: 12px;
+        font-weight: 500;
+
+        .browse-link {
+          color: #ff1744;
+          text-decoration: underline;
+          cursor: pointer;
+
+          &:hover {
+            color: #e91e63;
+          }
+        }
+      }
+
+      .file-types {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+      }
+    }
+  }
+
+  &.drag-active {
+    .upload-area {
+      border-color: #ff1744;
+      background: #fff5f5;
+      transform: scale(1.02);
+      box-shadow: 0 8px 25px rgba(255, 23, 68, 0.15);
+
+      .upload-content {
+        .upload-text {
+          color: #ff1744;
+        }
+      }
+    }
+  }
+
+  &.disabled {
+    .upload-area {
+      opacity: 0.6;
+      cursor: not-allowed;
+
+      &:hover {
+        border-color: #d1d5db;
+        background: #fafbfc;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+// Add upload icon
+.file-upload .upload-area .upload-content::before {
+  content: '';
+  width: 48px;
+  height: 48px;
+  background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTI0IDhWMzJNMTYgMTZMMjQgOEwzMiAxNiIgc3Ryb2tlPSIjOTk5IiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K') no-repeat center;
+  background-size: contain;
+  margin-bottom: 20px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.file-upload:hover .upload-area .upload-content::before,
+.file-upload.drag-active .upload-area .upload-content::before {
+  opacity: 1;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .file-upload {
+    .upload-area {
+      padding: 40px 20px;
+
+      .upload-content {
+        .upload-text {
+          font-size: 16px;
+        }
+
+        .file-types {
+          font-size: 13px;
+        }
+      }
+    }
+  }
+
+  .file-upload .upload-area .upload-content::before {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .file-upload {
+    .upload-area {
+      padding: 30px 16px;
+
+      .upload-content {
+        .upload-text {
+          font-size: 15px;
+        }
+
+        .file-types {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}

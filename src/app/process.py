@@ -5,6 +5,7 @@ import torch
 import shutil
 import pypdfium2
 import re
+import time
 from PIL import Image
 from paddlex import create_model
 from vietocr.tool.predictor import Predictor
@@ -16,6 +17,28 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
+
+def get_available_device():
+    """
+    Tự động phát hiện thiết bị khả dụng (CPU/GPU) một cách an toàn
+    """
+    try:
+        # Kiểm tra CUDA có khả dụng không
+        if torch.cuda.is_available():
+            # Thử tạo tensor trên GPU để kiểm tra driver
+            try:
+                test_tensor = torch.tensor([1.0]).cuda()
+                del test_tensor
+                torch.cuda.empty_cache()
+                return 'cuda'
+            except Exception as e:
+                print(f"CUDA available but driver error: {e}")
+                return 'cpu'
+        else:
+            return 'cpu'
+    except Exception as e:
+        print(f"Error detecting device: {e}")
+        return 'cpu'
 
 
 class Process:
@@ -30,10 +53,14 @@ class Process:
         font_path = "font/times.ttf"
         pdfmetrics.registerFont(TTFont('TimesNewRoman', font_path))
 
+        # Tự động phát hiện thiết bị
+        device = get_available_device()
+        print(f"Thiết bị sử dụng: {device}")
+
         # Cấu hình VietOCR
         config = Cfg.load_config_from_name('vgg_seq2seq')
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print("Thiết bị sử dụng:", device)
+        config['device'] = device
+
         if weights_url:
             config['weights'] = weights_url
             config['pretrain'] = weights_url
@@ -41,9 +68,28 @@ class Process:
             config['weights'] = 'https://vocr.vn/data/vietocr/vgg_seq2seq.pth'
             config['pretrain'] = 'https://vocr.vn/data/vietocr/vgg_seq2seq.pth'
 
-        # Khởi tạo models
-        self.rec_model = Predictor(config)
-        self.det_model = create_model(model_name="PP-OCRv5_server_det")
+        # Khởi tạo models với error handling
+        try:
+            self.rec_model = Predictor(config)
+            print("VietOCR model khởi tạo thành công")
+        except Exception as e:
+            print(f"Error initializing VietOCR: {e}")
+            # Fallback to CPU if GPU initialization fails
+            if device == 'cuda':
+                print("Đang thử lại với CPU...")
+                config['device'] = 'cpu'
+                self.rec_model = Predictor(config)
+                print("VietOCR model khởi tạo thành công với CPU")
+            else:
+                raise e
+
+        try:
+            # Khởi tạo PaddleOCR detection model
+            self.det_model = create_model(model_name="PP-OCRv5_server_det")
+            print("PaddleOCR detection model khởi tạo thành công")
+        except Exception as e:
+            print(f"Error initializing PaddleOCR: {e}")
+            raise e
 
         print("Đã khởi tạo Det_Rec thành công!")
 
@@ -168,13 +214,14 @@ class Process:
                         continue
                     text = self.rec_model.predict(cropped_image_pil)
                     text = self.fix_text_spacing(text)
-                except:
+                except Exception as e:
+                    print(f"Error in text recognition: {e}")
                     continue
 
                 x, y, font_size, bbox_width, bbox_height = self.calculate_font_size_and_position(poly, text, img_height)
                 font_size = self.adjust_font_size_to_fit_width(text, bbox_width, font_size)
                 c.setFont("TimesNewRoman", font_size)
-                c.setFillColor(Color(0, 0, 1, alpha=0.3))
+                c.setFillColor(Color(0, 0, 1, alpha=0))
                 try:
                     c.drawString(x, y, text)
                 except:
@@ -206,6 +253,10 @@ class Process:
         Returns:
             str: Đường dẫn file PDF đã tạo
         """
+        # Bắt đầu tính thời gian xử lý
+        start_time = time.time()
+        print(f"Bắt đầu xử lý file: {input_path}")
+
         # Tạo thư mục output nếu chưa có
         os.makedirs(output_dir, exist_ok=True)
 
@@ -214,12 +265,22 @@ class Process:
             base_name = os.path.splitext(os.path.basename(input_path))[0]
             final_output_name = f"{base_name}_ocr.pdf"
 
+        result_path = None
         if input_path.lower().endswith(".pdf"):
-            return self._process_pdf(input_path, output_dir, final_output_name)
+            result_path = self._process_pdf(input_path, output_dir, final_output_name)
         elif input_path.lower().endswith(('.png', '.jpg', '.jpeg')):
-            return self._process_image(input_path, final_output_name)
+            result_path = self._process_image(input_path, final_output_name)
         else:
             raise ValueError("Định dạng file không hỗ trợ. Hãy dùng PDF hoặc ảnh PNG/JPG.")
+
+        # Kết thúc tính thời gian và hiển thị kết quả
+        end_time = time.time()
+        processing_time = end_time - start_time
+
+        print(f"Hoàn thành xử lý file: {final_output_name}")
+        print(f"Thời gian xử lý: {processing_time:.2f} giây ({processing_time / 60:.2f} phút)")
+
+        return result_path
 
     def _process_pdf(self, input_path, output_dir, final_output_name):
         pdf = pypdfium2.PdfDocument(input_path)
@@ -228,15 +289,36 @@ class Process:
         page_pdf_paths = []
 
         for i, page in enumerate(pdf):
+            page_start_time = time.time()
+
             pil_image = page.render().to_pil()
             img_path = os.path.join(output_dir, f"page_{i + 1}.png")
             pil_image.save(img_path)
 
             pdf_path = os.path.join(output_dir, f"page_{i + 1}_ocr.pdf")
-            result = self.det_model.predict(img_path, batch_size=1)
-            self.process_recognition(img_path, result, output_pdf_path=pdf_path)
-            page_pdf_paths.append(pdf_path)
-            print("Đã xử lí trang thứ" + str(i + 1))
+            try:
+                result = self.det_model.predict(img_path, batch_size=1)
+                self.process_recognition(img_path, result, output_pdf_path=pdf_path)
+                page_pdf_paths.append(pdf_path)
+
+                page_end_time = time.time()
+                page_processing_time = page_end_time - page_start_time
+                print(f"Đã xử lý trang {i + 1}/{num_pages} - Thời gian: {page_processing_time:.2f}s")
+
+            except Exception as e:
+                print(f"Lỗi xử lý trang {i + 1}: {e}")
+                # Tạo PDF trống nếu có lỗi
+                c = canvas.Canvas(pdf_path, pagesize=(pil_image.width, pil_image.height))
+                temp_img_path = img_path.replace('.png', '_temp.png')
+                pil_image.save(temp_img_path)
+                c.drawImage(temp_img_path, 0, 0, width=pil_image.width, height=pil_image.height)
+                c.save()
+                os.remove(temp_img_path)
+                page_pdf_paths.append(pdf_path)
+
+                page_end_time = time.time()
+                page_processing_time = page_end_time - page_start_time
+                print(f"Trang {i + 1}/{num_pages} xử lý với lỗi - Thời gian: {page_processing_time:.2f}s")
 
         if num_pages == 1:
             shutil.copy(page_pdf_paths[0], final_output_name)
@@ -249,13 +331,43 @@ class Process:
 
         pdf.close()
         shutil.rmtree(output_dir)
-        print(f"Đã bỏ folder trung gian")
-        print(f"Đã tạo file PDF hoàn chỉnh: {final_output_name}")
+        print(f"Đã xóa folder trung gian")
         return final_output_name
 
     def _process_image(self, input_path, final_output_name):
         """Xử lý file ảnh"""
-        result = self.det_model.predict(input_path, batch_size=1)
-        self.process_recognition(input_path, result, output_pdf_path=final_output_name)
-        print(f"Đã tạo PDF từ ảnh: {final_output_name}")
-        return final_output_name
+        image_start_time = time.time()
+
+        try:
+            print("Đang phát hiện text trong ảnh...")
+            detection_start = time.time()
+            result = self.det_model.predict(input_path, batch_size=1)
+            detection_end = time.time()
+            print(f"Phát hiện text hoàn thành - Thời gian: {detection_end - detection_start:.2f}s")
+
+            print("Đang nhận dạng text và tạo PDF...")
+            recognition_start = time.time()
+            self.process_recognition(input_path, result, output_pdf_path=final_output_name)
+            recognition_end = time.time()
+            print(f"Nhận dạng text hoàn thành - Thời gian: {recognition_end - recognition_start:.2f}s")
+
+            image_end_time = time.time()
+            total_image_time = image_end_time - image_start_time
+            print(f"Tạo PDF từ ảnh hoàn thành - Tổng thời gian: {total_image_time:.2f}s")
+
+            return final_output_name
+
+        except Exception as e:
+            print(f"Lỗi xử lý ảnh: {e}")
+            print("Đang tạo PDF đơn giản...")
+
+            # Tạo PDF đơn giản nếu OCR thất bại
+            fallback_start = time.time()
+            img = Image.open(input_path)
+            c = canvas.Canvas(final_output_name, pagesize=(img.width, img.height))
+            c.drawImage(input_path, 0, 0, width=img.width, height=img.height)
+            c.save()
+            fallback_end = time.time()
+
+            print(f"Tạo PDF hoàn thành - Thời gian: {fallback_end - fallback_start:.2f}s")
+            return final_output_name
