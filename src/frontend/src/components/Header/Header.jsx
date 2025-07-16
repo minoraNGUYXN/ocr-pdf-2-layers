@@ -1,9 +1,8 @@
-
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import './Header.scss'
 
-const Header = () => {
+const Header = ({ onOpenLogin, onOpenSignUp }) => {
   const location = useLocation()
 
   return (
@@ -11,6 +10,7 @@ const Header = () => {
       <div className="container">
         <div className="left-section">
           <Link to="/" className="logo">
+            OCR Processor
           </Link>
           <nav className="nav">
             <Link
@@ -29,10 +29,10 @@ const Header = () => {
         </div>
 
         <div className="auth-buttons">
-          <button className="login-btn">
+          <button className="login-btn" onClick={onOpenLogin}>
             Login
           </button>
-          <button className="signup-btn">
+          <button className="signup-btn" onClick={onOpenSignUp}>
             Sign Up
           </button>
         </div>

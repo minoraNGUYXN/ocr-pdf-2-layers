@@ -1,5 +1,4 @@
-// API Base URL - adjust this to match your FastAPI server
-const API_BASE_URL = 'http://localhost:8000'
+import axiosInstance from './AxiosConfig'
 
 // Process file with OCR
 export const processFile = async (file, onProgress) => {
@@ -7,51 +6,34 @@ export const processFile = async (file, onProgress) => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${API_BASE_URL}/process`, {
-      method: 'POST',
-      body: formData,
+    const response = await axiosInstance.post('/process', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          )
+          onProgress(percentCompleted)
+        }
+      },
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || 'Failed to process file')
-    }
-
-    // Simulate progress for better UX
-    if (onProgress) {
-      let progress = 0
-      const progressInterval = setInterval(() => {
-        progress += 10
-        onProgress(progress)
-        if (progress >= 90) {
-          clearInterval(progressInterval)
-        }
-      }, 200)
-    }
-
-    const result = await response.json()
-
-    // Complete progress
-    if (onProgress) {
-      onProgress(100)
-    }
-
-    return result
+    return response.data
   } catch (error) {
-    throw new Error(error.message || 'Network error occurred')
+    throw new Error(error.response?.data?.detail || 'Failed to process file')
   }
 }
 
 // Download processed file
 export const downloadFile = async (filename) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/download/${filename}`)
+    const response = await axiosInstance.get(`/download/${filename}`, {
+      responseType: 'blob',
+    })
 
-    if (!response.ok) {
-      throw new Error('Failed to download file')
-    }
-
-    const blob = await response.blob()
+    const blob = new Blob([response.data])
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -61,26 +43,27 @@ export const downloadFile = async (filename) => {
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
   } catch (error) {
-    throw new Error(error.message || 'Download failed')
+    throw new Error(error.response?.data?.detail || 'Download failed')
   }
 }
 
-// Get file history (placeholder - implement when backend supports it)
-export const getFileHistory = async () => {
+// Get file history
+export const getFileHistory = async (skip = 0, limit = 20) => {
   try {
-    // This endpoint doesn't exist in the current FastAPI app
-    // Return empty array for now
-    return []
+    const response = await axiosInstance.get('/history', {
+      params: { skip, limit }
+    })
+    return response.data
   } catch (error) {
-    throw new Error('Failed to fetch history')
+    throw new Error(error.response?.data?.detail || 'Failed to fetch history')
   }
 }
 
 // Check API health
 export const checkApiHealth = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/`)
-    return response.ok
+    const response = await axiosInstance.get('/')
+    return response.status === 200
   } catch (error) {
     return false
   }
