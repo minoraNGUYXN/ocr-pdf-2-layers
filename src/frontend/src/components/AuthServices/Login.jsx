@@ -2,117 +2,121 @@ import React, { useState } from 'react'
 import AuthService from '../../services/AuthService'
 import './Auth.scss'
 
-const Login = ({ isOpen, onClose, onSwitchToSignUp }) => {
+const Login = ({ isOpen, onClose, onSwitchToSignUp, onAuthSuccess }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   })
+  const [errors, setErrors] = useState([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
+    setErrors([])
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
+    setErrors([])
+
+    // Validate form
+    const validationErrors = AuthService.validateLoginData(formData)
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors)
+      setLoading(false)
+      return
+    }
 
     try {
       await AuthService.login(formData)
-      onClose()
-      window.location.reload() // Refresh to update auth state
-    } catch (err) {
-      setError(err.message)
+
+      // Reset form
+      setFormData({ username: '', password: '' })
+
+      // Call success callback instead of reload
+      if (onAuthSuccess) {
+        onAuthSuccess()
+      }
+
+      // Small delay to ensure state updates, then reload
+      setTimeout(() => {
+        window.location.reload()
+      }, 100)
+
+    } catch (error) {
+      setErrors([error.message])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleReset = () => {
-    setFormData({
-      username: '',
-      password: ''
-    })
-    setError(null)
+  const handleClose = () => {
+    setFormData({ username: '', password: '' })
+    setErrors([])
+    onClose()
   }
 
-  const handleSwitchToSignUp = () => {
-    handleReset()
-    onSwitchToSignUp()
+  const handleOverlayClick = (e) => {
+    if (e.target.className === 'auth-modal-overlay') {
+      handleClose()
+    }
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="auth-overlay" onClick={onClose}>
-      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="auth-modal-overlay" onClick={handleOverlayClick}>
+      <div className="auth-modal">
         <div className="auth-header">
-          <h2>Login</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <h2>Đăng nhập</h2>
+          <button className="close-btn" onClick={handleClose}>×</button>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          {error && (
-            <div className="error-message">
-              {error}
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label>Tên đăng nhập</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Mật khẩu</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          {errors.length > 0 && (
+            <div className="error-messages">
+              {errors.map((error, index) => (
+                <p key={index} className="error-message">{error}</p>
+              ))}
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Enter your username"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Enter your password"
-            />
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleReset}
-              disabled={loading}
-            >
-              Reset
-            </button>
-          </div>
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? 'Đang xử lý...' : 'Đăng nhập'}
+          </button>
         </form>
 
-        <div className="auth-footer">
-          <p>Don't have an account? <span className="link" onClick={handleSwitchToSignUp}>Sign up here</span></p>
+        <div className="auth-switch">
+          <p>
+            Chưa có tài khoản?{' '}
+            <button className="switch-btn" onClick={onSwitchToSignUp}>
+              Đăng ký ngay
+            </button>
+          </p>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getFileHistory, downloadFile } from '../../services/api'
+import { getFileHistory, downloadFile, deleteFile } from '../../services/api'
 import AuthService from '../../services/AuthService'
 import './History.scss'
 
@@ -8,6 +8,9 @@ const History = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [downloading, setDownloading] = useState(null)
+  const [deleting, setDeleting] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [fileToDelete, setFileToDelete] = useState(null)
 
   // Check if user is authenticated
   useEffect(() => {
@@ -43,6 +46,37 @@ const History = () => {
     } finally {
       setDownloading(null)
     }
+  }
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = (file) => {
+    setFileToDelete(file)
+    setShowDeleteModal(true)
+  }
+
+  // Handle file deletion
+  const handleDelete = async () => {
+    if (!fileToDelete) return
+
+    try {
+      setDeleting(fileToDelete.id)
+      await deleteFile(fileToDelete.id)
+
+      // Remove file from history state
+      setHistory(prev => prev.filter(file => file.id !== fileToDelete.id))
+      setShowDeleteModal(false)
+      setFileToDelete(null)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  // Cancel delete modal
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false)
+    setFileToDelete(null)
   }
 
   // Format file size
@@ -145,9 +179,43 @@ const History = () => {
                   >
                     {downloading === file.processed_filename ? 'Downloading...' : 'Download'}
                   </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteConfirm(file)}
+                    disabled={deleting === file.id}
+                  >
+                    {deleting === file.id ? 'Deleting...' : 'Delete'}
+                  </button>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Confirm Delete</h3>
+              <p>Are you sure you want to delete "{fileToDelete?.original_filename}"?</p>
+              <p className="warning-text">This action cannot be undone.</p>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleDeleteCancel}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

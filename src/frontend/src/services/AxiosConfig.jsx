@@ -1,41 +1,24 @@
 import axios from 'axios'
 
-// API Base URL
-const API_BASE_URL = 'http://localhost:8000'
-
-// Create axios instance
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: 'http://localhost:8000',
+  timeout: 15000,
+  headers: { 'Content-Type': 'application/json' }
 })
 
-// Request interceptor to add auth token
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
+// Auto-attach token to requests
+axiosInstance.interceptors.request.use(config => {
+  const token = localStorage.getItem('access_token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
 
-// Response interceptor to handle errors
+// Handle unauthorized responses
 axiosInstance.interceptors.response.use(
-  (response) => {
-    return response
-  },
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
+      localStorage.clear()
       window.location.href = '/'
     }
     return Promise.reject(error)

@@ -10,28 +10,37 @@ class MongoDB:
     database = None
 
 
-# Global instance
 mongodb = MongoDB()
 
 
 async def connect_to_mongo():
-    """Create database connection"""
-    mongodb.client = AsyncIOMotorClient(os.getenv("MONGODB_URL"))
-    mongodb.database = mongodb.client[os.getenv("DATABASE_NAME")]
-
-    # Test connection
+    """Connect to MongoDB Atlas"""
     try:
+        mongodb.client = AsyncIOMotorClient(
+            os.getenv("MONGODB_URL"),
+            maxPoolSize=10,
+            minPoolSize=1,
+            serverSelectionTimeoutMS=5000,
+            socketTimeoutMS=20000,
+            connectTimeoutMS=10000,
+        )
+
+        mongodb.database = mongodb.client[os.getenv("DATABASE_NAME")]
         await mongodb.client.admin.command('ping')
-        print("Connected to MongoDB successfully")
+
+        server_info = await mongodb.client.server_info()
+        print(f"Connected to MongoDB v{server_info.get('version')}")
+
     except Exception as e:
-        print(f"Error connecting to MongoDB: {e}")
+        print(f"MongoDB connection failed: {e}")
+        raise
 
 
 async def close_mongo_connection():
-    """Close database connection"""
+    """Close MongoDB connection"""
     if mongodb.client:
         mongodb.client.close()
-        print("Disconnected from MongoDB")
+        print("MongoDB disconnected")
 
 
 def get_database():

@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
 import FileUpload from '../../components/FileUpload/FileUpload'
-import ProgressBar from '../../components/ProgressBar/ProgressBar'
 import { processFile, downloadFile } from '../../services/api'
 import './Upload.scss'
 
 const Upload = () => {
   const [file, setFile] = useState(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [status, setStatus] = useState('idle') // idle, processing, completed, error
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
@@ -17,7 +15,6 @@ const Upload = () => {
     setError(null)
     setStatus('idle')
     setResult(null)
-    setUploadProgress(0)
   }
 
   // Handle file processing
@@ -27,9 +24,8 @@ const Upload = () => {
     try {
       setStatus('processing')
       setError(null)
-      setUploadProgress(0)
 
-      const response = await processFile(file, setUploadProgress)
+      const response = await processFile(file)
       setResult(response)
       setStatus('completed')
 
@@ -55,7 +51,6 @@ const Upload = () => {
   // Reset form
   const handleReset = () => {
     setFile(null)
-    setUploadProgress(0)
     setStatus('idle')
     setResult(null)
     setError(null)
@@ -75,66 +70,85 @@ const Upload = () => {
         </div>
 
         <div className="upload-section">
-          <FileUpload
-            onFileSelect={handleFileSelect}
-            accept=".pdf,.jpg,.jpeg,.png"
-            disabled={status === 'processing'}
-          />
-
-          {file && (
-            <div className="file-info">
-              <div className="file-details">
-                <div className="file-meta">
+          {/* Show file upload or unified process area */}
+          {!file ? (
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              accept=".pdf,.jpg,.jpeg,.png"
+              disabled={status === 'processing'}
+            />
+          ) : (
+            <div className="unified-process-area">
+              {/* File info section */}
+              <div className="file-info">
+                <div className="file-icon">
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 6C8 4.89543 8.89543 4 10 4H30L40 14V42C40 43.1046 39.1046 44 38 44H10C8.89543 44 8 43.1046 8 42V6Z" fill="#ff1744" fillOpacity="0.1"/>
+                    <path d="M30 4V14H40" stroke="#ff1744" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 6C8 4.89543 8.89543 4 10 4H30L40 14V42C40 43.1046 39.1046 44 38 44H10C8.89543 44 8 43.1046 8 42V6Z" stroke="#ff1744" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="file-details">
                   <div className="file-name">{file.name}</div>
                   <div className="file-size">{formatFileSize(file.size)} MB</div>
                 </div>
+                {status === 'idle' && (
+                  <button className="remove-file" onClick={handleReset} title="Remove file">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M15 5L5 15M5 5L15 15" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                )}
               </div>
 
-              {status === 'idle' && (
-                <div className="upload-actions">
-                  <button className="btn btn-primary" onClick={handleProcess}>
-                    Process File
-                  </button>
-                  <button className="btn btn-secondary" onClick={handleReset}>
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+              {/* Status content area */}
+              <div className="status-content">
+                {status === 'idle' && (
+                  <div className="upload-actions">
+                    <button className="btn btn-primary" onClick={handleProcess}>
+                      Process File
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleReset}>
+                      Choose Another File
+                    </button>
+                  </div>
+                )}
 
-          {status === 'processing' && (
-            <div className="progress-section">
-              <ProgressBar
-                progress={uploadProgress}
-                label="Processing file..."
-                type="primary"
-              />
-            </div>
-          )}
+                {status === 'processing' && (
+                  <div className="processing-content">
+                    <div className="spinner-container">
+                      <div className="processing-spinner"></div>
+                    </div>
+                    <p className="processing-text">Processing your file...</p>
+                    <p className="processing-subtext">Please wait, this may take a few moments</p>
+                  </div>
+                )}
 
-          {status === 'completed' && result && (
-            <div className="result-section success">
-              <h3>Processing Complete!</h3>
-              <p>{result.message}</p>
-              <div className="result-actions">
-                <button className="btn btn-primary" onClick={handleDownload}>
-                  Download OCR Result
-                </button>
-                <button className="btn btn-secondary" onClick={handleReset}>
-                  Process Another File
-                </button>
+                {status === 'completed' && result && (
+                  <div className="result-content success">
+                    <h3>Processing Complete!</h3>
+                    <p>{result.message}</p>
+                    <div className="result-actions">
+                      <button className="btn btn-primary" onClick={handleDownload}>
+                        Download OCR Result
+                      </button>
+                      <button className="btn btn-secondary" onClick={handleReset}>
+                        Process Another File
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {status === 'error' && (
+                  <div className="result-content error">
+                    <h3>Processing Failed</h3>
+                    <p>{error}</p>
+                    <button className="btn btn-primary" onClick={handleReset}>
+                      Try Again
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
-
-          {status === 'error' && (
-            <div className="result-section error">
-              <h3>Processing Failed</h3>
-              <p>{error}</p>
-              <button className="btn btn-primary" onClick={handleReset}>
-                Try Again
-              </button>
             </div>
           )}
         </div>

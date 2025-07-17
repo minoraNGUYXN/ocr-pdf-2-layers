@@ -1,70 +1,79 @@
 import axiosInstance from './AxiosConfig'
 
-// Process file with OCR
-export const processFile = async (file, onProgress) => {
+// Helper function to handle API errors
+const handleError = (error) => {
+  throw new Error(error.response?.data?.detail || error.message || 'API request failed')
+}
+
+// Process file with OCR (removed progress callback and timeout)
+export const processFile = async (file) => {
   try {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await axiosInstance.post('/process', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: (progressEvent) => {
-        if (onProgress) {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          )
-          onProgress(percentCompleted)
-        }
-      },
+    const { data } = await axiosInstance.post('/process', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0, // No timeout - let the request complete
     })
 
-    return response.data
+    return data
   } catch (error) {
-    throw new Error(error.response?.data?.detail || 'Failed to process file')
+    handleError(error)
   }
 }
 
 // Download processed file
 export const downloadFile = async (filename) => {
   try {
-    const response = await axiosInstance.get(`/download/${filename}`, {
+    const { data } = await axiosInstance.get(`/download/${filename}`, {
       responseType: 'blob',
+      timeout: 0, // No timeout for downloads
     })
 
-    const blob = new Blob([response.data])
-    const url = window.URL.createObjectURL(blob)
+    const url = URL.createObjectURL(new Blob([data]))
     const a = document.createElement('a')
     a.href = url
     a.download = filename
-    document.body.appendChild(a)
     a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   } catch (error) {
-    throw new Error(error.response?.data?.detail || 'Download failed')
+    handleError(error)
+  }
+}
+
+// Delete processed file
+export const deleteFile = async (fileId) => {
+  try {
+    const { data } = await axiosInstance.delete(`/file/${fileId}`, {
+      timeout: 30000, // 30 seconds timeout for delete
+    })
+    return data
+  } catch (error) {
+    handleError(error)
   }
 }
 
 // Get file history
 export const getFileHistory = async (skip = 0, limit = 20) => {
   try {
-    const response = await axiosInstance.get('/history', {
-      params: { skip, limit }
+    const { data } = await axiosInstance.get('/history', {
+      params: { skip, limit },
+      timeout: 30000, // 30 seconds timeout for history
     })
-    return response.data
+    return data
   } catch (error) {
-    throw new Error(error.response?.data?.detail || 'Failed to fetch history')
+    handleError(error)
   }
 }
 
 // Check API health
 export const checkApiHealth = async () => {
   try {
-    const response = await axiosInstance.get('/')
-    return response.status === 200
-  } catch (error) {
+    const { status } = await axiosInstance.get('/', {
+      timeout: 5000, // 5 seconds timeout for health check
+    })
+    return status === 200
+  } catch {
     return false
   }
 }
