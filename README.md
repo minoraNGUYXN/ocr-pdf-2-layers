@@ -41,4 +41,5 @@ pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --no-deps
 python -m pip install paddlepaddle-gpu==3.1.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
 python -m pip install paddlepaddle==3.1.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
-uvicorn src.main:app --reload
+uvicorn src.backend.main:app --reload --host 0.0.0.0 --port 8000
+
