@@ -113,11 +113,11 @@ const History = () => {
       <div className="history-page">
         <div className="container">
           <div className="error-container">
-            <h3>CHƯA ĐĂNG NHẬP</h3>
+            <h3>LỖI TẢI TRANG</h3>
             <p>{error}</p>
             {AuthService.isAuthenticated() && (
               <button className="btn btn-primary" onClick={fetchHistory}>
-                Try Again
+                Thử lại
               </button>
             )}
           </div>
@@ -131,18 +131,15 @@ const History = () => {
       <div className="container">
         <div className="header-section">
           <div className="header-content">
-            <h1>File History</h1>
-            <p className="subtitle">View all your processed files</p>
+            <h1>LỊCH SỬ</h1>
+            <p className="subtitle">Xem tất cả các file đã được xử lý của bạn</p>
           </div>
-          <button className="btn btn-secondary" onClick={fetchHistory}>
-            Refresh
-          </button>
         </div>
 
         {history.length === 0 ? (
           <div className="empty-state">
-            <h3>No files processed yet</h3>
-            <p>Start by uploading and processing your first file</p>
+          <h3>Chưa có file nào được xử lý</h3>
+          <p>Hãy bắt đầu tải lên và xử lý file đầu tiên của bạn</p>
             <a href="/" className="btn btn-primary">
               Process File
             </a>
@@ -160,9 +157,6 @@ const History = () => {
                     <div className="file-meta">
                       <span className="file-size">{formatFileSize(file.file_size)}</span>
                       <span className="file-date">{formatDate(file.created_at)}</span>
-                      <span className="download-count">
-                        Downloaded {file.download_count} times
-                      </span>
                       {file.processing_time && (
                         <span className="processing-time">
                           Processed in {file.processing_time.toFixed(2)}s
