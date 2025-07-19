@@ -74,9 +74,9 @@ const FileUpload = ({ onFileSelect, accept, disabled }) => {
       >
         <div className="upload-content">
           <p className="upload-text">
-            Drag & drop your file here or <span className="browse-link">click to browse</span>
+            Kéo thả tệp vào đây hoặc <span className="browse-link">bấm để chọn tệp</span>
           </p>
-          <p className="file-types">Supports PDF, JPG, PNG (max 10MB)</p>
+          <p className="file-types">Hỗ trợ file PDF, JPG, PNG (kích thước tối đa 10MB)</p>
         </div>
         <input
           ref={fileInputRef}

@@ -13,7 +13,7 @@ const Header = ({ onOpenLogin, onOpenSignUp }) => {
       <div className="container">
         <div className="left-section">
           <Link to="/" className="logo">
-            OCR Processor
+            <img src="/logo.svg" alt="Logo" className="logo-img" />
           </Link>
           <nav className="nav">
             <Link

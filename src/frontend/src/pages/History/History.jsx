@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getFileHistory, downloadFile, deleteFile } from '../../services/api'
+import { getFileHistory, downloadFile, deleteFile } from '../../services/Api.jsx'
 import AuthService from '../../services/AuthService'
 import './History.scss'
 
@@ -15,7 +15,7 @@ const History = () => {
   // Check if user is authenticated
   useEffect(() => {
     if (!AuthService.isAuthenticated()) {
-      setError('Please login to view history')
+      setError('Hãy đăng nhập để xem lịch sử các file đã xử lí !')
       setLoading(false)
       return
     }
@@ -113,7 +113,7 @@ const History = () => {
       <div className="history-page">
         <div className="container">
           <div className="error-container">
-            <h3>Error Loading History</h3>
+            <h3>CHƯA ĐĂNG NHẬP</h3>
             <p>{error}</p>
             {AuthService.isAuthenticated() && (
               <button className="btn btn-primary" onClick={fetchHistory}>

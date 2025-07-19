@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import FileUpload from '../../components/FileUpload/FileUpload'
-import { processFile, downloadFile } from '../../services/api'
+import { processFile, downloadFile } from '../../services/Api.jsx'
 import './Upload.scss'
 
 const Upload = () => {
@@ -66,7 +66,7 @@ const Upload = () => {
       <div className="container">
         <div className="upload-header">
           <h1>OCR PDF Processor</h1>
-          <p className="subtitle">Upload your PDF or image file for OCR processing</p>
+          <p className="subtitle">Tải lên tệp PDF hoặc hình ảnh của bạn để xử lý OCR</p>
         </div>
 
         <div className="upload-section">

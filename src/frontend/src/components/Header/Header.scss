@@ -20,36 +20,21 @@
     gap: 40px;
   }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: #333;
-    font-size: 18px;
-    font-weight: 600;
-
-    &::before {
-      content: '';
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #ff1744, #ff4569);
-      border-radius: 50%;
-      margin-right: 12px;
+    .logo {
       display: flex;
       align-items: center;
-      justify-content: center;
-      position: relative;
+      text-decoration: none;
 
-      // Inner circle/dot
-      &::after {
-        content: '';
-        width: 16px;
-        height: 16px;
-        background: white;
-        border-radius: 50%;
-        position: absolute;
+      .logo-img {
+        width: 75px; // Điều chỉnh kích thước theo ý bạn
+        height: auto;
+      }
+
+      &:hover {
+        opacity: 0.8; // Hiệu ứng hover
       }
     }
+
 
     &:hover {
       color: #ff1744;
@@ -123,7 +108,6 @@
       }
     }
   }
-}
 
 // Responsive
 @media (max-width: 768px) {
