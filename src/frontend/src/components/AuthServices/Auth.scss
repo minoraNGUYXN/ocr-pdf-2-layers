@@ -412,3 +412,65 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
   color: #6c757d !important;
 }
+  .forgot-password-link {
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+
+    .forgot-btn {
+      background: none;
+      border: none;
+      color: #6c757d;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      padding: 0.5rem;
+      border-radius: 6px;
+
+      &:hover {
+        color: #ff0044;
+        background: rgba(255, 0, 68, 0.05);
+      }
+    }
+  }
+
+  // OTP Info Section (for ForgotPassword component)
+  .otp-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #2196f3;
+    border-left: 4px solid #2196f3;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: #0d47a1;
+
+    p {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      line-height: 1.4;
+
+      strong {
+        color: #1565c0;
+      }
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #1976d2;
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+      font-weight: 500;
+
+      &:hover {
+        color: #0d47a1;
+        background: rgba(25, 118, 210, 0.1);
+      }
+    }
+  }

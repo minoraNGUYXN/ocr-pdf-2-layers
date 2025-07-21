@@ -5,11 +5,16 @@ import Upload from './pages/Upload/Upload'
 import History from './pages/History/History'
 import Login from './components/AuthServices/Login'
 import SignUp from './components/AuthServices/SignUp'
+import ForgotPassword from './components/AuthServices/ForgotPassword'
 import AuthService from './services/AuthService'
 import './App.css'
 
 function App() {
-  const [authModal, setAuthModal] = useState({ login: false, signup: false })
+  const [authModal, setAuthModal] = useState({
+    login: false,
+    signup: false,
+    forgotPassword: false
+  })
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Check authentication status on mount
@@ -20,12 +25,16 @@ function App() {
   const openModal = (type) => {
     // Only open modal if not authenticated
     if (!isAuthenticated) {
-      setAuthModal({ login: type === 'login', signup: type === 'signup' })
+      setAuthModal({
+        login: type === 'login',
+        signup: type === 'signup',
+        forgotPassword: type === 'forgotPassword'
+      })
     }
   }
 
   const closeModal = () => {
-    setAuthModal({ login: false, signup: false })
+    setAuthModal({ login: false, signup: false, forgotPassword: false })
   }
 
   const handleAuthSuccess = () => {
@@ -60,6 +69,7 @@ function App() {
               isOpen={authModal.login}
               onClose={closeModal}
               onSwitchToSignUp={() => openModal('signup')}
+              onSwitchToForgotPassword={() => openModal('forgotPassword')}
               onAuthSuccess={handleAuthSuccess}
             />
 
@@ -68,6 +78,12 @@ function App() {
               onClose={closeModal}
               onSwitchToLogin={() => openModal('login')}
               onAuthSuccess={handleAuthSuccess}
+            />
+
+            <ForgotPassword
+              isOpen={authModal.forgotPassword}
+              onClose={closeModal}
+              onSwitchToLogin={() => openModal('login')}
             />
           </>
         )}

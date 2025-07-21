@@ -51,6 +51,9 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
+    # Fields for password reset
+    reset_code: Optional[str] = None
+    reset_code_expiry: Optional[datetime] = None
 
 
 class ProcessedFile(BaseModel):
@@ -80,15 +83,23 @@ class UserLogin(BaseModel):
     password: str = Field(..., min_length=6)
 
 
-# NEW: Change password request model
 class ChangePasswordRequest(BaseModel):
     old_password: str = Field(..., min_length=6)
     new_password: str = Field(..., min_length=6)
 
 
-# NEW: Change email request model
 class ChangeEmailRequest(BaseModel):
     new_email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
+
+
+class ForgotPasswordRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+
+
+class ResetPasswordRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    reset_code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=6)
 
 
 # Response models
@@ -118,6 +129,11 @@ class ProcessedFileResponse(BaseModel):
     download_count: int
 
 
-# NEW: Standard success response model
 class SuccessResponse(BaseModel):
     message: str
+
+
+# UPDATED: Response model for forgot password - returns masked email
+class ForgotPasswordResponse(BaseModel):
+    message: str
+    email: str  # Masked email for display

@@ -11,10 +11,13 @@ import bcrypt
 from typing import Optional, List
 import time
 from dotenv import load_dotenv
+import random
+import string
 
 from src.backend.database.connection import connect_to_mongo, close_mongo_connection
 from src.backend.database.repositories import UserRepository, ProcessedFileRepository
 from src.backend.database.models import *
+from src.backend.database.email_service import email_service
 from src.app.process import Process
 
 load_dotenv()
@@ -73,6 +76,22 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def generate_reset_code() -> str:
+    """Generate a 6-digit random reset code"""
+    return ''.join(random.choices(string.digits, k=6))
+
+def mask_email(email: str) -> str:
+    """Mask email for display purposes"""
+    if '@' not in email:
+        return email
+
+    local, domain = email.split('@', 1)
+    if len(local) <= 2:
+        masked_local = '*' * len(local)
+    else:
+        masked_local = local[0] + '*' * (len(local) - 2) + local[-1]
+
+    return f"{masked_local}@{domain}"
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
     try:
@@ -152,7 +171,6 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     )
 
 
-# NEW: Change password endpoint
 @app.post("/auth/change-password", response_model=SuccessResponse)
 async def change_password(
         password_data: ChangePasswordRequest,
@@ -176,8 +194,6 @@ async def change_password(
 
     return SuccessResponse(message="Password changed successfully")
 
-
-# NEW: Change email endpoint
 @app.post("/auth/change-email", response_model=SuccessResponse)
 async def change_email(
         email_data: ChangeEmailRequest,
@@ -199,6 +215,66 @@ async def change_email(
 
     return SuccessResponse(message="Email changed successfully")
 
+#Reset Password
+@app.post("/auth/forgot-password", response_model=dict)
+async def forgot_password(request: ForgotPasswordRequest):
+    """Send reset code to user's email using username"""
+    # Check if user exists by username
+    user = await user_repo.get_user_by_username(request.username)
+    if not user:
+        # Don't reveal if username exists or not for security
+        return {
+            "message": "If username exists, reset code has been sent",
+            "email": "***@***.***"  # Generic masked email
+        }
+
+    # Generate reset code and expiry (5 minutes)
+    reset_code = generate_reset_code()
+    expiry = datetime.utcnow() + timedelta(minutes=5)
+
+    # Save reset code to database using user email
+    await user_repo.set_reset_code(user.email, reset_code, expiry)
+
+    # Send email to user's email
+    email_sent = await email_service.send_reset_code_email(user.email, reset_code)
+    if not email_sent:
+        raise HTTPException(500, "Failed to send reset code email")
+
+    return {
+        "message": "Reset code has been sent to your email",
+        "email": mask_email(user.email)
+    }
+
+
+@app.post("/auth/reset-password", response_model=SuccessResponse)
+async def reset_password(request: ResetPasswordRequest):
+    """Reset password using username and reset code"""
+    # Get user by username first
+    user = await user_repo.get_user_by_username(request.username)
+    if not user:
+        raise HTTPException(400, "Invalid or expired reset code")
+
+    # Verify reset code using the user's email
+    verified_user = await user_repo.verify_reset_code(user.email, request.reset_code)
+    if not verified_user or str(verified_user.id) != str(user.id):
+        raise HTTPException(400, "Invalid or expired reset code")
+
+    # Hash new password
+    hashed_password = hash_password(request.new_password)
+
+    # Update password and clear reset code
+    success = await user_repo.update_user(str(user.id), {
+        "password": hashed_password,
+        "updated_at": datetime.utcnow()
+    })
+
+    if not success:
+        raise HTTPException(500, "Failed to reset password")
+
+    # Clear reset code
+    await user_repo.clear_reset_code(user.email)
+
+    return SuccessResponse(message="Password reset successfully")
 
 # File processing endpoints
 @app.post("/process")
@@ -274,7 +350,6 @@ async def download_file(
     return FileResponse(output_path, filename=output_filename, media_type="application/pdf")
 
 
-# NEW: Delete file endpoint
 @app.delete("/file/{file_id}", response_model=SuccessResponse)
 async def delete_file(
         file_id: str,
@@ -341,7 +416,6 @@ async def root():
             "files": ["POST /process", "GET /download/{filename}", "GET /history", "DELETE /file/{file_id}"]
         }
     }
-
 
 @app.get("/health")
 async def health_check():

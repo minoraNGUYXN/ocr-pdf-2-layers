@@ -17,7 +17,11 @@ class AuthService {
     'Current password is incorrect': 'Mật khẩu hiện tại không đúng',
     'Email already in use': 'Email đã được sử dụng',
     'Failed to update password': 'Không thể cập nhật mật khẩu',
-    'Failed to update email': 'Không thể cập nhật email'
+    'Failed to update email': 'Không thể cập nhật email',
+    'Invalid or expired reset code': 'Mã khôi phục không hợp lệ hoặc đã hết hạn',
+    'Failed to send reset code email': 'Không thể gửi email mã khôi phục',
+    'Failed to reset password': 'Không thể đặt lại mật khẩu',
+    'User not found': 'Không tìm thấy tài khoản'
   }
 
   _handleError(error) {
@@ -45,7 +49,7 @@ class AuthService {
     }
   }
 
-  // NEW: Change password method
+  // Change password method
   async changePassword(oldPassword, newPassword) {
     try {
       const { data } = await axiosInstance.post('/auth/change-password', {
@@ -58,7 +62,7 @@ class AuthService {
     }
   }
 
-  // NEW: Change email method
+  // Change email method
   async changeEmail(newEmail) {
     try {
       const { data } = await axiosInstance.post('/auth/change-email', {
@@ -71,6 +75,32 @@ class AuthService {
         localStorage.setItem('user', JSON.stringify(this._user))
       }
 
+      return data
+    } catch (error) {
+      throw new Error(this._handleError(error))
+    }
+  }
+
+  // UPDATED: Forgot password method - now uses username
+  async forgotPassword(username) {
+    try {
+      const { data } = await axiosInstance.post('/auth/forgot-password', {
+        username: username
+      })
+      return data
+    } catch (error) {
+      throw new Error(this._handleError(error))
+    }
+  }
+
+  // UPDATED: Reset password method - now uses username
+  async resetPassword(username, resetCode, newPassword) {
+    try {
+      const { data } = await axiosInstance.post('/auth/reset-password', {
+        username: username,
+        reset_code: resetCode,
+        new_password: newPassword
+      })
       return data
     } catch (error) {
       throw new Error(this._handleError(error))
@@ -102,7 +132,6 @@ class AuthService {
     return this._token
   }
 
-  // Validation helpers
   validateSignUpData({ username, email, password }) {
     const errors = []
     if (!username || username.length < 3) errors.push('Tên đăng nhập ít nhất 3 ký tự')
@@ -118,7 +147,6 @@ class AuthService {
     return errors
   }
 
-  // NEW: Validation for change password
   validateChangePasswordData({ oldPassword, newPassword, confirmPassword }) {
     const errors = []
     if (!oldPassword) errors.push('Mật khẩu hiện tại là bắt buộc')
@@ -127,10 +155,24 @@ class AuthService {
     return errors
   }
 
-  // NEW: Validation for change email
   validateChangeEmailData({ newEmail }) {
     const errors = []
     if (!newEmail || !newEmail.includes('@')) errors.push('Email không hợp lệ')
+    return errors
+  }
+
+  validateForgotPasswordData({ username }) {
+    const errors = []
+    if (!username || username.length < 3) errors.push('Tên đăng nhập ít nhất 3 ký tự')
+    return errors
+  }
+
+  validateResetPasswordData({ username, resetCode, newPassword, confirmPassword }) {
+    const errors = []
+    if (!username || username.length < 3) errors.push('Tên đăng nhập ít nhất 3 ký tự')
+    if (!resetCode || resetCode.length !== 6) errors.push('Mã khôi phục phải có 6 ký tự')
+    if (!newPassword || newPassword.length < 6) errors.push('Mật khẩu mới phải có ít nhất 6 ký tự')
+    if (newPassword !== confirmPassword) errors.push('Mật khẩu xác nhận không khớp')
     return errors
   }
 }

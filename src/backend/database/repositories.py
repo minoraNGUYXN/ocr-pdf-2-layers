@@ -3,6 +3,7 @@ from typing import List, Optional
 from bson import ObjectId
 from pymongo import ASCENDING, DESCENDING
 from motor.motor_asyncio import AsyncIOMotorCollection
+from datetime import datetime
 from .connection import get_database
 from .models import User, ProcessedFile
 
@@ -58,9 +59,46 @@ class UserRepository(BaseRepository):
     async def delete_user(self, user_id: str) -> bool:
         return await self.delete_by_id(user_id)
 
+    # NEW: Methods for password reset
+    async def set_reset_code(self, email: str, reset_code: str, expiry: datetime) -> bool:
+        """Set reset code for user by email"""
+        result = await self.collection.update_one(
+            {"email": email},
+            {"$set": {
+                "reset_code": reset_code,
+                "reset_code_expiry": expiry,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        return result.modified_count > 0
+
+    async def verify_reset_code(self, email: str, reset_code: str) -> Optional[User]:
+        """Verify reset code and return user if valid"""
+        data = await self.collection.find_one({
+            "email": email,
+            "reset_code": reset_code,
+            "reset_code_expiry": {"$gt": datetime.utcnow()}
+        })
+        return User(**data) if data else None
+
+    async def clear_reset_code(self, email: str) -> bool:
+        """Clear reset code after successful password reset"""
+        result = await self.collection.update_one(
+            {"email": email},
+            {"$unset": {
+                "reset_code": "",
+                "reset_code_expiry": ""
+            }, "$set": {
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        return result.modified_count > 0
+
     async def create_indexes(self):
         await self.collection.create_index([("username", ASCENDING)], unique=True)
         await self.collection.create_index([("email", ASCENDING)], unique=True)
+        # NEW: Index for reset code lookup
+        await self.collection.create_index([("email", ASCENDING), ("reset_code", ASCENDING)])
 
 
 class ProcessedFileRepository(BaseRepository):

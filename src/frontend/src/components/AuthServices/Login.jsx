@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import AuthService from '../../services/AuthService'
 import './Auth.scss'
 
-const Login = ({ isOpen, onClose, onSwitchToSignUp, onAuthSuccess }) => {
+const Login = ({ isOpen, onClose, onSwitchToSignUp, onSwitchToForgotPassword, onAuthSuccess }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -108,6 +108,17 @@ const Login = ({ isOpen, onClose, onSwitchToSignUp, onAuthSuccess }) => {
           <button type="submit" className="auth-submit-btn" disabled={loading}>
             {loading ? 'Đang xử lý...' : 'Đăng nhập'}
           </button>
+
+          {/* Forgot Password Link */}
+          <div className="forgot-password-link">
+            <button
+              type="button"
+              className="forgot-btn"
+              onClick={onSwitchToForgotPassword}
+            >
+              Quên mật khẩu?
+            </button>
+          </div>
         </form>
 
         <div className="auth-switch">
