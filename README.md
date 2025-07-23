@@ -81,3 +81,11 @@ uvicorn src.backend.main:app --reload --host 0.0.0.0 --port 8000
 cd src/frontend
 npm install
 npm run dev
+```
+
+4. Phát triển cục bộ với Docker Compose:
+```bash
+cd pdf_2_layers
+docker build -t pdf2layers-app:latest
+docker run -p 8000:8000 --name pdf2layers-container  pdf2layers-app:latest
+```
