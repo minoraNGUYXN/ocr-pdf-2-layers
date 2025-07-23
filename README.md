@@ -12,7 +12,7 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 - Frontend: ReactJS
 - Backend: FastAPI
 - Storage: MongoDB Atlas
-- Xác thực JWT
+- Xác thực: JWT
 - Email OTP reset password: SMTP
 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR): phát hiện vùng chứa văn bản trong ảnh.
 - [VietOCR](https://github.com/quanpn90/VietOCR): nhận dạng nội dung văn bản từ ảnh cắt ra.
@@ -57,9 +57,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 # SMTP Configuration
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your_email
+SMTP_USERNAME=your_email #hãy lập email khác để gửi email có mã OTP cho user khi reset password
 SMTP_PASSWORD=your_2FA_password
-FROM_EMAIL=ocr_pdf_proccessor@gmail.com
 
 # API Configuration
 API_HOST=0.0.0.0
