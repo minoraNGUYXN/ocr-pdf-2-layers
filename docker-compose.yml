@@ -3,13 +3,13 @@ version: "3.9"
 services:
   backend:
     build:
-      context: ./src/backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/backend/Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./src/backend:/app
-      - /app/node_modules
+      - .:/app
+      - /app/src/backend/node_modules  # Nếu có node_modules
     depends_on:
       - frontend
 
@@ -18,9 +18,9 @@ services:
       context: ./src/frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173" # Vite dev server
+      - "5173:5173"
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true # nếu Vite hot reload không hoạt động trong Docker
+      - CHOKIDAR_USEPOLLING=true

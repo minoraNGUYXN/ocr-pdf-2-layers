@@ -1,6 +1,6 @@
 FROM python:3.10-bullseye
 
-COPY requirements.txt .
+COPY src/backend/requirements.txt .
 RUN pip install -r requirements.txt
 RUN pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 --no-deps -f https://download.pytorch.org/whl/cu118/torch_stable.html
 RUN pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --no-deps
@@ -15,4 +15,4 @@ COPY . .
 USER root
 RUN chmod -R 777 /app/*
 # CMD ["python3","extract_api.py"]
-ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000","--reload"]
+ENTRYPOINT ["uvicorn", "src.backend.main:app", "--host", "0.0.0.0", "--port", "8000","--reload"]
