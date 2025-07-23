@@ -1,4 +1,4 @@
-# Dự án Số hóa tài liệu PDF 2 lớp với PaddleOCR và VietOCR
+# Webapp Số hóa tài liệu PDF 2 lớp với PaddleOCR và VietOCR
 
 ## Mục tiêu
 
@@ -6,7 +6,7 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 
 1. **Phát hiện văn bản (Text Detection)** bằng **PaddleOCR**.
 2. **Nhận dạng văn bản (Text Recognition)** bằng **VietOCR**.
-3. Tạo **PDF 2 lớp (searchable PDF)** giữ nguyên hình ảnh gốc và thêm lớp text nhận dạng bên dưới để phục vụ tra cứu, tìm kiếm và lưu trữ.
+3. Tạo **PDF 2 lớp (searchable PDF)** giữ nguyên hình ảnh gốc và thêm lớp text nhận dạng bên trên để phục vụ tra cứu, tìm kiếm và lưu trữ.
 
 ## Công nghệ sử dụng
 - Frontend: ReactJS
