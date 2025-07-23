@@ -9,7 +9,11 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 3. Tạo **PDF 2 lớp (searchable PDF)** giữ nguyên hình ảnh gốc và thêm lớp text nhận dạng bên dưới để phục vụ tra cứu, tìm kiếm và lưu trữ.
 
 ## Công nghệ sử dụng
-
+- Frontend: ReactJS
+- Backend: FastAPI
+- Storage: MongoDB Atlas
+- Xác thực JWT
+- Email OTP reset password: SMTP
 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR): phát hiện vùng chứa văn bản trong ảnh.
 - [VietOCR](https://github.com/quanpn90/VietOCR): nhận dạng nội dung văn bản từ ảnh cắt ra.
 - Python libraries: `opencv`, `PIL`, `reportlab`, `PyMuPDF`, v.v.
@@ -28,10 +32,40 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 
 - File PDF đầu ra **giữ nguyên định dạng và layout gốc**.
 - Có thể **search text, copy text** từ PDF.
-- Hỗ trợ **số hóa tài liệu** phục vụ lưu trữ điện tử, tra cứu, tìm kiếm nội dung nhanh.
 
 ## Yêu cầu cài đặt và sử dụng
-
+1. Repository cloning:
+ ```bash
+ git clone https://github.com/minoraNGUYXN/pdf_2_layers.git
+ cd pdf_2_layers
+ ```  
+2. Cấu hình môi trường:
+   ```bash
+   cd src/backend
+   ```
+   Tạo file .env trong thư mục backend với các biến sau:
+   ```bash
+   # Database Configuration
+   MONGODB_URL=mongodb+srv://<your_mongodb_username>:<your_password>@<your_cluster_name>.mongodb.net
+   DATABASE_NAME=your_db_name
+   
+   # JWT Configuration
+   SECRET_KEY=Eyour_secret_key
+   ALGORITHM=HS256
+   ACCESS_TOKEN_EXPIRE_MINUTES=30
+   
+   # SMTP Configuration (Thêm phần này)
+   SMTP_SERVER=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your_email
+   SMTP_PASSWORD=your_2FA_password
+   FROM_EMAIL=ocr_pdf_proccessor@gmail.com
+   
+   # API Configuration
+   API_HOST=0.0.0.0
+   API_PORT=8000
+   ``` 
+3. Cài đặt và thực thi chương trình
 ```bash
 python -m venv venv # dành cho lần chạy đầu tiên
 source venv/bin/activate  # Linux/Mac
