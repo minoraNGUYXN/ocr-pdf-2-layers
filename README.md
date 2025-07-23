@@ -35,36 +35,36 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 
 ## Yêu cầu cài đặt và sử dụng
 1. Repository cloning:
- ```bash
- git clone https://github.com/minoraNGUYXN/pdf_2_layers.git
- cd pdf_2_layers
- ```  
+```bash
+git clone https://github.com/minoraNGUYXN/pdf_2_layers.git
+cd pdf_2_layers
+```  
 2. Cấu hình môi trường:
-   ```bash
-   cd src/backend
-   ```
-   Tạo file .env trong thư mục backend với các biến sau:
-   ```bash
-   # Database Configuration
-   MONGODB_URL=mongodb+srv://<your_mongodb_username>:<your_password>@<your_cluster_name>.mongodb.net
-   DATABASE_NAME=your_db_name
-   
-   # JWT Configuration
-   SECRET_KEY=Eyour_secret_key
-   ALGORITHM=HS256
-   ACCESS_TOKEN_EXPIRE_MINUTES=30
-   
-   # SMTP Configuration (Thêm phần này)
-   SMTP_SERVER=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_USERNAME=your_email
-   SMTP_PASSWORD=your_2FA_password
-   FROM_EMAIL=ocr_pdf_proccessor@gmail.com
-   
-   # API Configuration
-   API_HOST=0.0.0.0
-   API_PORT=8000
-   ``` 
+```bash
+cd src/backend
+```
+Tạo file .env trong thư mục backend với các biến sau:
+```bash
+# Database Configuration
+MONGODB_URL=mongodb+srv://<your_mongodb_username>:<your_password>@<your_cluster_name>.mongodb.net
+DATABASE_NAME=your_db_name
+
+# JWT Configuration
+SECRET_KEY=Eyour_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# SMTP Configuration
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email
+SMTP_PASSWORD=your_2FA_password
+FROM_EMAIL=ocr_pdf_proccessor@gmail.com
+
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+``` 
 3. Cài đặt và thực thi chương trình
 ```bash
 python -m venv venv # dành cho lần chạy đầu tiên
