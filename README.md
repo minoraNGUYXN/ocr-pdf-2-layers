@@ -33,7 +33,14 @@ Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đ
 - File PDF đầu ra **giữ nguyên định dạng và layout gốc**.
 - Có thể **search text, copy text** từ PDF.
 
-## Yêu cầu cài đặt và sử dụng
+## Cài đặt thiết yếu
+Trước khi cài đặt bạn phải có sẵn:
+1. Docker
+2. Docker Compose
+3. Github
+4. Tối thiểu còn trống 35GB trong ổ đĩa  
+
+## Cài đặt phát triển cục bộ
 1. Repository cloning:
 ```bash
 git clone https://github.com/minoraNGUYXN/pdf_2_layers.git
@@ -85,6 +92,6 @@ npm run dev
 4. Phát triển cục bộ với Docker Compose:
 ```bash
 cd pdf_2_layers
-docker build -t pdf2layers-app:latest
-docker run -p 8000:8000 --name pdf2layers-container  pdf2layers-app:latest
+docker-compose build
+docker compose up
 ```
