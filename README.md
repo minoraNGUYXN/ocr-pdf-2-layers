@@ -1,56 +1,60 @@
-# Webapp Số hóa tài liệu PDF 2 lớp với PaddleOCR và VietOCR
+# Webapp for PDF 2-Layer Digitization with PaddleOCR and VietOCR
 
-## Mục tiêu
+## Objective
 
-Xây dựng hệ thống tự động xử lý các **file PDF hoặc ảnh** đầu vào để:
+Build a system that automatically processes **PDF files or images** as input to:
 
-1. **Phát hiện văn bản (Text Detection)** bằng **PaddleOCR**.
-2. **Nhận dạng văn bản (Text Recognition)** bằng **VietOCR**.
-3. Tạo **PDF 2 lớp (searchable PDF)** giữ nguyên hình ảnh gốc và thêm lớp text nhận dạng bên trên để phục vụ tra cứu, tìm kiếm và lưu trữ.
+1. **Detect text** using **PaddleOCR**.  
+2. **Recognize text** using **VietOCR**.  
+3. Generate a **2-layer PDF (searchable PDF)** that keeps the original image intact and overlays a recognized text layer to enable search, lookup, and archiving.
 
-## Công nghệ sử dụng
-- Frontend: ReactJS
-- Backend: FastAPI
-- Storage: MongoDB Atlas
-- Xác thực: JWT
-- Email OTP reset password: SMTP
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR): phát hiện vùng chứa văn bản trong ảnh.
-- [VietOCR](https://github.com/quanpn90/VietOCR): nhận dạng nội dung văn bản từ ảnh cắt ra.
-- Python libraries: `opencv`, `PIL`, `reportlab`, `PyMuPDF`, v.v.
+## Technologies Used
+- Frontend: ReactJS  
+- Backend: FastAPI  
+- Storage: MongoDB Atlas  
+- Authentication: JWT  
+- Email OTP password reset: SMTP  
+- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR): detects text regions in images.  
+- [VietOCR](https://github.com/quanpn90/VietOCR): recognizes text content from cropped image regions.  
+- Python libraries: `opencv`, `PIL`, `reportlab`, `PyMuPDF`, etc.  
 
-## Quy trình xử lý
+## Processing Workflow
 
-1. **Đọc file PDF hoặc ảnh** đầu vào.
-2. Dùng **PaddleOCR** để **detect** tất cả vùng chứa text.
-3. Cắt các vùng text ra thành từng ảnh nhỏ.
-4. Dùng **VietOCR** để **recognize** nội dung text của từng vùng.
-5. Tạo file PDF mới:
-   - Lớp dưới cùng: hình ảnh gốc.
-   - Lớp trên: text nhận dạng được, đặt đúng vị trí, cho phép select/copy/search.
+1. **Read input PDF or image file.**  
+2. Use **PaddleOCR** to **detect** all text regions.  
+3. Crop detected text regions into smaller images.  
+4. Use **VietOCR** to **recognize** the text content from each region.  
+5. Generate a new PDF file:  
+   - Bottom layer: original image.  
+   - Top layer: recognized text, positioned correctly, allowing select/copy/search.  
 
-## Kết quả
+## Result
 
-- File PDF đầu ra **giữ nguyên định dạng và layout gốc**.
-- Có thể **search text, copy text** từ PDF.
+- The output PDF **retains the original format and layout**.  
+- Users can **search and copy text** from the PDF.  
 
-## Cài đặt thiết yếu
-Trước khi cài đặt bạn phải có sẵn:
-1. Docker
-2. Docker Compose
-3. Github
-4. Tối thiểu còn trống 35GB trong ổ đĩa  
+## Essential Requirements
 
-## Cài đặt phát triển cục bộ
-1. Repository cloning:
+Before installation, make sure you have:  
+- Docker  
+- Docker Compose  
+- GitHub  
+- At least 35GB of free disk space  
+
+---
+
+## Local Development Setup
+
+### 1. Clone the repository
 ```bash
 git clone https://github.com/minoraNGUYXN/pdf_2_layers.git
 cd pdf_2_layers
 ```  
-2. Cấu hình môi trường:
+### 2. Configure environment
 ```bash
 cd src/backend
 ```
-Tạo file .env trong thư mục backend với các biến sau:
+### Create a .env file inside the backend directory with the following variables:
 ```bash
 # Database Configuration
 MONGODB_URL=mongodb+srv://<your_mongodb_username>:<your_password>@<your_cluster_name>.mongodb.net
@@ -71,7 +75,7 @@ SMTP_PASSWORD=your_2FA_password
 API_HOST=0.0.0.0
 API_PORT=8000
 ``` 
-3. Cài đặt và thực thi chương trình
+### 3. Install and run the application
 ```bash
 python -m venv venv # dành cho lần chạy đầu tiên
 source venv/bin/activate  # Linux/Mac
@@ -89,7 +93,7 @@ npm install
 npm run dev
 ```
 
-4. Phát triển cục bộ với Docker Compose:
+### 4. Run with Docker Compose
 ```bash
 cd pdf_2_layers
 docker-compose build
