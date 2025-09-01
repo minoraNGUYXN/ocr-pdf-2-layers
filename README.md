@@ -68,7 +68,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 # SMTP Configuration
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your_email #hãy lập email khác để gửi email có mã OTP cho user khi reset password
+SMTP_USERNAME=your_email # create a separate email for sending OTP codes when users reset password
 SMTP_PASSWORD=your_2FA_password
 
 # API Configuration
@@ -77,10 +77,10 @@ API_PORT=8000
 ``` 
 ### 3. Install and run the application
 ```bash
-python -m venv venv # dành cho lần chạy đầu tiên
+python -m venv venv # # for first-time setup
 source venv/bin/activate  # Linux/Mac
 .\venv\Scripts\activate   # Windows
-pip install -r requirements.txt # dành cho lần chạy đầu tiên'
+pip install -r requirements.txt # # for first-time setup
 pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 --no-deps -f https://download.pytorch.org/whl/cu118/torch_stable.html
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --no-deps
 python -m pip install paddlepaddle-gpu==3.1.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
